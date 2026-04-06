@@ -9,8 +9,32 @@
 
 <p>Upload your PDF</p>
 
-<input type="file">
-<button>Upload</button>
+<input type="file" id="fileInput">
+<button onclick="uploadFile()">Upload</button>
+
+<p id="status"></p>
+
+<script>
+async function uploadFile() {
+    const file = document.getElementById("fileInput").files[0];
+    
+    if (!file) {
+        alert("Please select file");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("http://127.0.0.1:8000/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    const result = await response.json();
+    document.getElementById("status").innerText = result.message;
+}
+</script>
 
 </body>
 </html>
