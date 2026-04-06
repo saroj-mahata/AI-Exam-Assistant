@@ -2,15 +2,20 @@ from fastapi import FastAPI, UploadFile, File
 import os
 import PyPDF2
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Configure API key
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Initialize model
+model = genai.GenerativeModel("gemini-pro")
 
 app = FastAPI()
 
 UPLOAD_FOLDER = "data"
-
-import os
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel("gemini-pro")
 
 @app.get("/")
 def home():
