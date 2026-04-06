@@ -7,21 +7,19 @@
 
 <h1>AI Exam Assistant</h1>
 
-<p>Upload your PDF</p>
-
+<h2>Upload PDF</h2>
 <input type="file" id="fileInput">
 <button onclick="uploadFile()">Upload</button>
 
-<p id="status"></p>
+<h2>Ask Question</h2>
+<input type="text" id="question" placeholder="Ask from your notes">
+<button onclick="askQuestion()">Ask</button>
+
+<p id="response"></p>
 
 <script>
 async function uploadFile() {
     const file = document.getElementById("fileInput").files[0];
-    
-    if (!file) {
-        alert("Please select file");
-        return;
-    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -32,7 +30,18 @@ async function uploadFile() {
     });
 
     const result = await response.json();
-    document.getElementById("status").innerText = result.message;
+    alert(result.message);
+}
+
+async function askQuestion() {
+    const question = document.getElementById("question").value;
+
+    const response = await fetch("http://127.0.0.1:8000/ask?question=" + question, {
+        method: "POST"
+    });
+
+    const result = await response.json();
+    document.getElementById("response").innerText = result.answer;
 }
 </script>
 
