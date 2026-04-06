@@ -20,7 +20,7 @@ UPLOAD_FOLDER = "data"
 @app.get("/")
 def home():
     return {"message": "AI Exam Assistant Running"}
-
+user_questions = []
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
@@ -45,6 +45,8 @@ def read_all_pdfs():
 
 @app.post("/ask")
 async def ask_question(question: str):
+    user_questions.append(question)
+
     content = read_all_pdfs()
 
     prompt = f"""
@@ -59,3 +61,18 @@ async def ask_question(question: str):
     response = model.generate_content(prompt)
 
     return {"answer": response.text}
+    @app.get("/weak-topics")
+async def weak_topics():
+    questions = "\n".join(user_questions)
+
+    prompt = f"""
+    Based on these user questions:
+    
+    {questions}
+    
+    Identify weak topics of the student.
+    """
+
+    response = model.generate_content(prompt)
+
+    return {"weak_topics": response.text}
