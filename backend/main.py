@@ -1,15 +1,20 @@
 from fastapi import FastAPI, UploadFile, File
 import os
 import PyPDF2
+import google.generativeai as genai
 
 app = FastAPI()
 
 UPLOAD_FOLDER = "data"
 
+# Paste your API key below
+genai.configure(api_key="AIzaSyBmMv9TqGbs6Y3qvoinG9Pf3ebJmH332Yw")
+
+model = genai.GenerativeModel("gemini-pro")
+
 @app.get("/")
 def home():
     return {"message": "AI Exam Assistant Running"}
-
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -19,7 +24,6 @@ async def upload_file(file: UploadFile = File(...)):
         f.write(await file.read())
         
     return {"message": "File uploaded successfully"}
-
 
 def read_all_pdfs():
     text = ""
@@ -34,12 +38,19 @@ def read_all_pdfs():
     
     return text
 
-
 @app.post("/ask")
 async def ask_question(question: str):
     content = read_all_pdfs()
 
-    if question.lower() in content.lower():
-        return {"answer": "Answer found in your notes"}
+    prompt = f"""
+    Answer from these notes:
     
-    return {"answer": "I couldn't find answer in uploaded PDFs"}
+    {content}
+    
+    Question:
+    {question}
+    """
+
+    response = model.generate_content(prompt)
+
+    return {"answer": response.text}
