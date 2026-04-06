@@ -1,3 +1,6 @@
+## 📂 Project Structure
+
+```text
 AI-Exam-Assistant/
 ├── backend/
 │   └── main.py          # FastAPI server and Gemini logic
@@ -8,3 +11,4 @@ AI-Exam-Assistant/
 ├── .gitignore           # Prevents sensitive files from being pushed
 ├── requirements.txt     # Python dependencies
 └── README.md
+```
