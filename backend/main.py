@@ -7,8 +7,8 @@ app = FastAPI()
 
 UPLOAD_FOLDER = "data"
 
-# Paste your API key below
-genai.configure(api_key="AIzaSyBmMv9TqGbs6Y3qvoinG9Pf3jjebJmH332Yw")
+import os
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 model = genai.GenerativeModel("gemini-pro")
 
