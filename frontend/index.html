@@ -4,89 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Exam Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        input[type="text"] { width: 70%; padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .output { background: #e9ecef; padding: 15px; border-radius: 4px; margin-top: 10px; white-space: pre-wrap; }
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+        .card { background: white; padding: 20px; border-radius: 12px; shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
     </style>
 </head>
-<body>
+<body class="p-6">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-8">🤖 AI Exam Assistant</h1>
 
-    <h1>🧠 AI Exam Assistant</h1>
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">1. Upload PDF Notes</h2>
+            <input type="file" id="fileInput" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            <button onclick="uploadFile()" class="mt-4 w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">Upload & Read PDF</button>
+            <p id="upload-status" class="mt-2 text-sm text-gray-600 italic"></p>
+        </div>
 
-    <div class="card">
-        <h2>1. Upload PDF Notes</h2>
-        <input type="file" id="fileInput" accept=".pdf">
-        <button onclick="uploadFile()">Upload & Read</button>
-        <p id="upload-status" style="color: green; font-weight: bold;"></p>
-    </div>
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">2. Ask a Question</h2>
+            <input type="text" id="question" placeholder="e.g., What are the main points of Chapter 1?" class="w-full p-2 border border-gray-300 rounded-lg">
+            <button onclick="askQuestion()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">Ask AI</button>
+            <div id="ai-response" class="mt-4 p-3 bg-gray-50 rounded border border-gray-200 min-h-[50px]">AI Response will appear here...</div>
+        </div>
 
-    <div class="card">
-        <h2>2. Ask a Question</h2>
-        <input type="text" id="question" placeholder="E.g., What is the main theme of chapter 1?">
-        <button onclick="askQuestion()">Ask</button>
-        <div id="response" class="output">AI Response will appear here...</div>
-    </div>
-
-    <div class="card">
-        <h2>3. Analyze Weak Topics</h2>
-        <button onclick="weakTopics()">Find Weak Topics</button>
-        <div id="weak" class="output">Topics to focus on will appear here...</div>
-    </div>
-
-    <div class="card">
-        <h2>4. Generate Practice Test</h2>
-        <button onclick="generateTest()">Generate Test</button>
-        <div id="test" class="output">Practice questions will appear here...</div>
+        <div class="card text-center">
+            <h2 class="text-xl font-semibold mb-4">3. Analyze Study Gaps</h2>
+            <button onclick="getWeakTopics()" class="w-full bg-purple-600 text-white py-2 rounded-lg font-bold hover:bg-purple-700 transition">Find My Weak Topics</button>
+            <div id="weak-topics-list" class="mt-4 text-left"></div>
+        </div>
     </div>
 
     <script>
+        // CHANGE THIS TO YOUR RENDER URL
         const API_URL = "https://ai-exam-assistant-2dh7.onrender.com";
 
         async function uploadFile() {
             const fileInput = document.getElementById("fileInput");
             if (!fileInput.files.length) return alert("Please select a file first.");
-            
-            document.getElementById("upload-status").innerText = "Reading PDF...";
+
+            document.getElementById("upload-status").innerText = "Reading PDF... Please wait.";
             const formData = new FormData();
             formData.append("file", fileInput.files[0]);
 
             try {
                 const response = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
                 const result = await response.json();
-                document.getElementById("upload-status").innerText = result.message;
+                document.getElementById("upload-status").innerText = "✅ " + result.message;
             } catch (error) {
-                document.getElementById("upload-status").innerText = "Error uploading file.";
+                document.getElementById("upload-status").innerText = "❌ Error connecting to backend.";
             }
         }
 
         async function askQuestion() {
             const question = document.getElementById("question").value;
-            if (!question) return alert("Please type a question.");
-            
-            document.getElementById("response").innerText = "Thinking...";
-            const response = await fetch(`${API_URL}/ask?question=${encodeURIComponent(question)}`, { method: "POST" });
-            const result = await response.json();
-            document.getElementById("response").innerText = result.answer || result.detail;
+            const responseDiv = document.getElementById("ai-response");
+            responseDiv.innerText = "Thinking...";
+
+            try {
+                const response = await fetch(`${API_URL}/ask?question=${encodeURIComponent(question)}`, { method: "POST" });
+                const result = await response.json();
+                responseDiv.innerText = result.answer;
+            } catch (error) {
+                responseDiv.innerText = "❌ Error: Backend is asleep or disconnected.";
+            }
         }
 
-        async function weakTopics() {
-            document.getElementById("weak").innerText = "Analyzing notes...";
-            const response = await fetch(`${API_URL}/weak-topics`);
-            const result = await response.json();
-            document.getElementById("weak").innerText = result.weak_topics || result.detail;
-        }
+        async function getWeakTopics() {
+            const listDiv = document.getElementById("weak-topics-list");
+            listDiv.innerText = "Analyzing your notes...";
 
-        async function generateTest() {
-            document.getElementById("test").innerText = "Generating test...";
-            const response = await fetch(`${API_URL}/generate-test`);
-            const result = await response.json();
-            document.getElementById("test").innerText = result.test || result.detail;
+            try {
+                const response = await fetch(`${API_URL}/weak-topics`);
+                const result = await response.json();
+                listDiv.innerText = result.weak_topics;
+            } catch (error) {
+                listDiv.innerText = "❌ Error fetching topics.";
+            }
         }
     </script>
-
 </body>
 </html>
