@@ -23,6 +23,10 @@
 
 <p id="weak"></p>
 
+<h2>Generate Test</h2>
+<button onclick="generateTest()">Generate Test</button>
+
+<p id="test"></p>
 
 <script>
 
@@ -59,6 +63,14 @@ async function weakTopics() {
     const result = await response.json();
 
     document.getElementById("weak").innerText = result.weak_topics;
+}
+
+
+async function generateTest() {
+    const response = await fetch("http://127.0.0.1:8000/generate-test");
+    const result = await response.json();
+
+    document.getElementById("test").innerText = result.test;
 }
 
 </script>
