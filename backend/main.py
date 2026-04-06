@@ -17,3 +17,6 @@ async def upload_file(file: UploadFile = File(...)):
         f.write(await file.read())
         
     return {"message": "File uploaded successfully"}
+    @app.post("/ask")
+async def ask_question(question: str):
+    return {"answer": f"You asked: {question}"}
