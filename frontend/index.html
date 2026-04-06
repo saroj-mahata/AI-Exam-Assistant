@@ -3,6 +3,7 @@
 <head>
 <title>AI Exam Assistant</title>
 </head>
+
 <body>
 
 <h1>AI Exam Assistant</h1>
@@ -17,7 +18,14 @@
 
 <p id="response"></p>
 
+<h2>Weak Topics</h2>
+<button onclick="weakTopics()">Show Weak Topics</button>
+
+<p id="weak"></p>
+
+
 <script>
+
 async function uploadFile() {
     const file = document.getElementById("fileInput").files[0];
 
@@ -33,6 +41,7 @@ async function uploadFile() {
     alert(result.message);
 }
 
+
 async function askQuestion() {
     const question = document.getElementById("question").value;
 
@@ -43,6 +52,15 @@ async function askQuestion() {
     const result = await response.json();
     document.getElementById("response").innerText = result.answer;
 }
+
+
+async function weakTopics() {
+    const response = await fetch("http://127.0.0.1:8000/weak-topics");
+    const result = await response.json();
+
+    document.getElementById("weak").innerText = result.weak_topics;
+}
+
 </script>
 
 </body>
