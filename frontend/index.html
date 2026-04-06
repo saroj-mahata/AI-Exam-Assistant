@@ -1,79 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>AI Exam Assistant</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Exam Assistant</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input[type="text"] { width: 70%; padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .output { background: #e9ecef; padding: 15px; border-radius: 4px; margin-top: 10px; white-space: pre-wrap; }
+    </style>
 </head>
-
 <body>
 
-<h1>AI Exam Assistant</h1>
+    <h1>🧠 AI Exam Assistant</h1>
 
-<h2>Upload PDF</h2>
-<input type="file" id="fileInput">
-<button onclick="uploadFile()">Upload</button>
+    <div class="card">
+        <h2>1. Upload PDF Notes</h2>
+        <input type="file" id="fileInput" accept=".pdf">
+        <button onclick="uploadFile()">Upload & Read</button>
+        <p id="upload-status" style="color: green; font-weight: bold;"></p>
+    </div>
 
-<h2>Ask Question</h2>
-<input type="text" id="question" placeholder="Ask from your notes">
-<button onclick="askQuestion()">Ask</button>
+    <div class="card">
+        <h2>2. Ask a Question</h2>
+        <input type="text" id="question" placeholder="E.g., What is the main theme of chapter 1?">
+        <button onclick="askQuestion()">Ask</button>
+        <div id="response" class="output">AI Response will appear here...</div>
+    </div>
 
-<p id="response"></p>
+    <div class="card">
+        <h2>3. Analyze Weak Topics</h2>
+        <button onclick="weakTopics()">Find Weak Topics</button>
+        <div id="weak" class="output">Topics to focus on will appear here...</div>
+    </div>
 
-<h2>Weak Topics</h2>
-<button onclick="weakTopics()">Show Weak Topics</button>
+    <div class="card">
+        <h2>4. Generate Practice Test</h2>
+        <button onclick="generateTest()">Generate Test</button>
+        <div id="test" class="output">Practice questions will appear here...</div>
+    </div>
 
-<p id="weak"></p>
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
 
-<h2>Generate Test</h2>
-<button onclick="generateTest()">Generate Test</button>
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) return alert("Please select a file first.");
+            
+            document.getElementById("upload-status").innerText = "Reading PDF...";
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
 
-<p id="test"></p>
+            try {
+                const response = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+                const result = await response.json();
+                document.getElementById("upload-status").innerText = result.message;
+            } catch (error) {
+                document.getElementById("upload-status").innerText = "Error uploading file.";
+            }
+        }
 
-<script>
+        async function askQuestion() {
+            const question = document.getElementById("question").value;
+            if (!question) return alert("Please type a question.");
+            
+            document.getElementById("response").innerText = "Thinking...";
+            const response = await fetch(`${API_URL}/ask?question=${encodeURIComponent(question)}`, { method: "POST" });
+            const result = await response.json();
+            document.getElementById("response").innerText = result.answer || result.detail;
+        }
 
-async function uploadFile() {
-    const file = document.getElementById("fileInput").files[0];
+        async function weakTopics() {
+            document.getElementById("weak").innerText = "Analyzing notes...";
+            const response = await fetch(`${API_URL}/weak-topics`);
+            const result = await response.json();
+            document.getElementById("weak").innerText = result.weak_topics || result.detail;
+        }
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch("http://127.0.0.1:8000/upload", {
-        method: "POST",
-        body: formData
-    });
-
-    const result = await response.json();
-    alert(result.message);
-}
-
-
-async function askQuestion() {
-    const question = document.getElementById("question").value;
-
-    const response = await fetch("http://127.0.0.1:8000/ask?question=" + question, {
-        method: "POST"
-    });
-
-    const result = await response.json();
-    document.getElementById("response").innerText = result.answer;
-}
-
-
-async function weakTopics() {
-    const response = await fetch("http://127.0.0.1:8000/weak-topics");
-    const result = await response.json();
-
-    document.getElementById("weak").innerText = result.weak_topics;
-}
-
-
-async function generateTest() {
-    const response = await fetch("http://127.0.0.1:8000/generate-test");
-    const result = await response.json();
-
-    document.getElementById("test").innerText = result.test;
-}
-
-</script>
+        async function generateTest() {
+            document.getElementById("test").innerText = "Generating test...";
+            const response = await fetch(`${API_URL}/generate-test`);
+            const result = await response.json();
+            document.getElementById("test").innerText = result.test || result.detail;
+        }
+    </script>
 
 </body>
 </html>
