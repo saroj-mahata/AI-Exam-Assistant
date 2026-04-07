@@ -18,15 +18,10 @@ genai.configure(api_key=api_key)
 
 app = FastAPI(title="AI Exam Assistant", version="3.0")
 
-# --- CORS ---
+# --- CORS (UPDATED FIX) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "null",
-    ],
+    allow_origins=["*"],   # <-- FIXED
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
