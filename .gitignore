@@ -2,3 +2,9 @@
 __pycache__/
 *.pyc
 data/*.pdf
+
+*.egg-info/
+.venv/
+venv/
+.DS_Store
+*.log
