@@ -25,7 +25,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:5500",
         "http://localhost:5500",
-        "null",  # for file:// during local dev
+        "null",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -36,10 +36,10 @@ app.add_middleware(
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 # --- In-memory state ---
-uploaded_pdfs: dict[str, str] = {}           # { filename: extracted_text }
-chat_history: List[dict] = []                # [ { role, content } ]
+uploaded_pdfs: dict[str, str] = {}
+chat_history: List[dict] = []
 
-MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024        # 5 MB
+MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 MAX_CONTEXT_CHARS   = 40_000
 
 
@@ -104,7 +104,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE_BYTES:
-        raise HTTPException(status_code=413, detail=f"File too large. Max size is 5 MB.")
+        raise HTTPException(status_code=413, detail="File too large. Max size is 5 MB.")
 
     filename = file.filename
     if filename in uploaded_pdfs:
@@ -159,7 +159,6 @@ async def chat(body: ChatRequest):
 
     system_prompt = build_system_prompt()
 
-    # Build Gemini history
     gemini_history = []
     for turn in chat_history:
         role = "user" if turn["role"] == "user" else "model"
@@ -167,18 +166,15 @@ async def chat(body: ChatRequest):
 
     try:
         convo = model.start_chat(history=gemini_history)
-        # Inject system context only on the user message side
         full_message = f"[SYSTEM INSTRUCTIONS]\n{system_prompt}\n\n[USER]\n{message}"
         response = convo.send_message(full_message)
         reply = response.text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
 
-    # Persist history (store clean user message, not the injected one)
     chat_history.append({"role": "user", "content": message})
     chat_history.append({"role": "assistant", "content": reply})
 
-    # Keep last 30 turns (15 exchanges)
     while len(chat_history) > 30:
         chat_history.pop(0)
         chat_history.pop(0)
